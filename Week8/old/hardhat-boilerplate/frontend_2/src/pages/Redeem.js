@@ -1,0 +1,220 @@
+import { useState } from "react";
+import "./styles.css";
+import {
+  Box,
+  Button,
+  Center,
+  Flex,
+  Heading,
+  Image,
+  Input,
+  SimpleGrid,
+  Text,
+} from "@chakra-ui/react";
+
+import { Alchemy, Network, Contract } from "alchemy-sdk";
+// import { useState } from "react";
+import { nftContractAddress } from "../utils/contracts-config";
+// import { useSelector } from "react-redux";
+
+import { ethers } from "ethers";
+import NFT from "../utils/PutYourETHWhereYourMouthIs.json";
+import axios from "axios";
+
+const config_ALCHEMY = {
+  apiKey: process.env.REACT_APP_API_KEY,
+  network: Network.MATIC_MUMBAI,
+};
+const alchemy = new Alchemy(config_ALCHEMY);
+
+function Redeem() {
+  const [userAddress, setUserAddress] = useState("");
+  // const [results, setResults] = useState([]);
+  const [hasQueried, setHasQueried] = useState(false);
+  // const [EscrowDataObjects, setEscrowDataObjects] = useState([]);
+  const [relevant_tokenDataObjects, set_relevant_tokenDataObjects] = useState(
+    []
+  );
+  const { ethereum } = window;
+  const provider = new ethers.providers.Web3Provider(ethereum);
+
+  const signer = provider.getSigner();
+  const nftContract = new Contract(nftContractAddress, NFT.abi, signer);
+  const Success = async (nftContract, TokenId) => {
+    // console.log(TokenId);
+    const achievedChallenge = await nftContract.functions.achieved(TokenId);
+    // console.log(achievedChallenge);
+  };
+
+  const Failed = async (nftContract, TokenId) => {
+    // console.log(TokenId);
+    const achievedChallenge = await nftContract.functions.failed(TokenId);
+    // console.log(achievedChallenge);
+  };
+
+  async function getEscrows(nftContract, tokenCount) {
+    const EscrowPromises = [];
+    for (let i = 0; i < tokenCount; i++) {
+      // console.log("rerun", i);
+      const EscrowData = await nftContract.functions.tokenIdToEscrows(i);
+      // console.log("EscrowData", EscrowData);
+      EscrowPromises.push(EscrowData);
+    }
+    return EscrowPromises;
+  }
+
+  async function getTokeData(data) {
+    const tokenDataPromises = [];
+
+    for (let i = 0; i < data.ownedNfts.length; i++) {
+      const tokenData = alchemy.nft.getNftMetadata(
+        data.ownedNfts[i].contract.address,
+        data.ownedNfts[i].tokenId
+      );
+      tokenDataPromises.push(tokenData);
+    }
+    return tokenDataPromises;
+  }
+  // async function getTokenURI(nftContract, tokenId) {
+  //   return await nftContract.functions.getTokenURI(tokenId);
+  // }
+
+  async function getNFTsForOwner() {
+    const relevant_tokenDataObjects = []; // reset when calling getNFTsForOwner
+    let escrowDataObjects = []; // reset when calling getNFTsForOwner
+    let results; // reset when calling getNFTsForOwner
+    let [EscrowData, tokenData] = [[], []]; // reset when calling getNFTsForOwner
+    const referee = await signer.getAddress();
+    results = await alchemy.nft.getNftsForOwner(userAddress, {
+      contractAddresses: [nftContractAddress],
+      refreshCache: true,
+    });
+
+    [EscrowData, tokenData] = await Promise.all([
+      getEscrows(nftContract, results.ownedNfts.length),
+      getTokeData(results),
+    ]);
+    // setEscrowDataObjects(await Promise.all(EscrowData));
+    // setTokenDataObjects(await Promise.all(tokenData));
+    escrowDataObjects = await Promise.all(EscrowData);
+    const tokenId = [];
+    for (let i = 0; i < results.ownedNfts.length; i++) {
+      console.log(results.ownedNfts[i]);
+      console.log("arbiter", escrowDataObjects[i].arbiter);
+      console.log("approved", escrowDataObjects[i].isApproved);
+      if (
+        escrowDataObjects[i].arbiter == referee &&
+        escrowDataObjects[i].isApproved == false
+      ) {
+        relevant_tokenDataObjects.push(results.ownedNfts[i]);
+        tokenId.push(results.ownedNfts[i].tokenId);
+      }
+    }
+    console.log(tokenId);
+
+    setHasQueried(true);
+    set_relevant_tokenDataObjects(relevant_tokenDataObjects);
+    // relevant_tokenDataObjects.map((e, i) => {
+    //   console.log(e.toString(), i);
+    // });
+    // console.log(relevant_tokenDataObjects);
+  }
+  return (
+    <Box w="100vw">
+      <Center>
+        <Flex
+          alignItems={"center"}
+          justifyContent="center"
+          flexDirection={"column"}
+        >
+          <Heading mb={4} fontSize={36}>
+            Validate Goals
+          </Heading>
+          <Text>
+            Whose NFTs would you like to review? Enter their address below.
+          </Text>
+        </Flex>
+      </Center>
+      <Flex
+        w="100%"
+        flexDirection="column"
+        alignItems="center"
+        justifyContent={"center"}
+      >
+        <Heading mt={10}>
+          Commit NFT tokens that you were asked to be the referee:
+        </Heading>
+        <Input
+          onChange={(e) => setUserAddress(e.target.value)}
+          color="black"
+          w="600px"
+          textAlign="center"
+          p={4}
+          bgColor="white"
+          fontSize={24}
+        />
+        <Button fontSize={20} onClick={getNFTsForOwner} mt={36} bgColor="white">
+          Fetch NFTs
+        </Button>
+        <Button colorScheme="blue">Button</Button>
+        <Heading my={36}>Here are the Commit NFTs:</Heading>
+
+        {hasQueried ? (
+          <SimpleGrid w={"90vw"} columns={4} spacing={24}>
+            {relevant_tokenDataObjects.map((e, i) => {
+              console.log(relevant_tokenDataObjects[i]);
+              return (
+                <Box p="" maxW="320px" borderWidth="px">
+                  <Flex
+                    flexDir={"column"}
+                    color="white"
+                    bg="blue"
+                    w={"20.7vw"}
+                    key={e.id}
+                  >
+                    <Text
+                      ml={2}
+                      textTransform="uppercase"
+                      fontSize="sm"
+                      fontWeight="bold"
+                      color="pink.800"
+                    >
+                      {relevant_tokenDataObjects[i].rawMetadata.name}
+                    </Text>
+                  </Flex>
+                  <Image
+                    borderRadius="md"
+                    src={relevant_tokenDataObjects[i].rawMetadata.image}
+                  />
+                  <Button
+                    colorScheme="whatsapp"
+                    onClick={() =>
+                      Success(nftContract, relevant_tokenDataObjects[i].tokenId)
+                    }
+                  >
+                    Success
+                  </Button>
+                  <Button
+                    colorScheme="red"
+                    className="text-xl font-semibold py-2 px-10 bg-black shadow-lg white-blue-500 rounded-lg mb-4 hover:scale-105 transition duration-500 ease-in-out"
+                    onClick={() =>
+                      Failed(nftContract, relevant_tokenDataObjects[i].tokenId)
+                    }
+                    style={{ color: "white" }}
+                    key={e.id}
+                  >
+                    Failed
+                  </Button>
+                </Box>
+              );
+            })}
+          </SimpleGrid>
+        ) : (
+          "Please make a query! The query may take a few seconds..."
+        )}
+      </Flex>
+    </Box>
+  );
+}
+
+export default Redeem;

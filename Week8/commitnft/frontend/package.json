@@ -1,0 +1,39 @@
+{
+	"name": "commitnft",
+	"version": "0.1.0",
+	"private": true,
+	"scripts": {
+		"dev": "next dev",
+		"build": "next build",
+		"start": "next start",
+		"lint": "next link",
+		"marketplace": "npx create-web3-dapp marketplace"
+	},
+	"dependencies": {
+		"@chakra-ui/icons": "^2.0.17",
+		"@chakra-ui/react": "^2.4.9",
+		"@emotion/react": "^11.10.5",
+		"@emotion/styled": "^11.10.5",
+		"@metamask/jazzicon": "^2.0.0",
+		"@mui/material": "^5.11.8",
+		"@rainbow-me/rainbowkit": "^0.8.1",
+		"@reduxjs/toolkit": "^1.9.2",
+		"@zag-js/focus-visible": "^0.2.2",
+		"alchemy-sdk": "^2.4.2",
+		"ethers": "^5",
+		"framer-motion": "^9.0.2",
+		"next": "13.1.6",
+		"react": "18.2.0",
+		"react-bootstrap": "^2.7.1",
+		"react-dom": "18.2.0",
+		"react-redux": "^8.0.5",
+		"react-router-dom": "^6.8.1",
+		"styled-components": "^5.3.6",
+		"wagmi": "^0.11.5",
+		"web3modal": "^1.9.12"
+	},
+	"devDependencies": {
+		"eslint": "8.33.0",
+		"eslint-config-next": "13.1.6"
+	}
+}

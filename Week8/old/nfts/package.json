@@ -1,0 +1,18 @@
+{
+  "name": "hardhat-project",
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^2.0.1",
+    "hardhat": "^2.12.6"
+  },
+  "dependencies": {
+    "@nomiclabs/hardhat-ethers": "^2.2.2",
+    "@nomiclabs/hardhat-waffle": "^2.0.3",
+    "@openzeppelin/contracts": "^4.8.1",
+    "@openzeppelin/contracts-upgradeable": "^4.8.1",
+    "@openzeppelin/hardhat-upgrades": "^1.22.1",
+    "axios": "^1.2.5",
+    "dotenv": "^16.0.3",
+    "react": "^18.2.0",
+    "react-tabs": "^6.0.0"
+  }
+}
